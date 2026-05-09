@@ -12,7 +12,7 @@ class WhatsAppAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val pkg = event?.packageName?.toString() ?: return
-        if (pkg != "com.whatsapp") return
+        if (pkg != "com.whatsapp" && pkg != "com.whatsapp.w4b") return
         if (!PosterCoordinator.isRunning()) return
 
         val root = rootInActiveWindow ?: return

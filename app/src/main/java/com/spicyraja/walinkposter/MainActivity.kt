@@ -22,6 +22,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.startBtn.setOnClickListener {
+            if (!isAccessibilityEnabled()) {
+                Toast.makeText(this, "Enable accessibility service first", Toast.LENGTH_LONG).show()
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                return@setOnClickListener
+            }
+
             val lines = binding.linksInput.text.toString()
                 .split("\n")
                 .map { it.trim() }
@@ -52,6 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openWhatsApp() {
         val launchIntent = packageManager.getLaunchIntentForPackage("com.whatsapp")
+            ?: packageManager.getLaunchIntentForPackage("com.whatsapp.w4b")
         if (launchIntent != null) {
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(launchIntent)

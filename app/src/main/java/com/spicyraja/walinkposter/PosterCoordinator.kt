@@ -108,8 +108,20 @@ object PosterCoordinator {
     }
 
     private fun findMessageInput(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        val byId = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/entry")
-        if (!byId.isNullOrEmpty()) return byId.last()
+        val candidateIds = listOf(
+            "com.whatsapp:id/entry",
+            "com.whatsapp.w4b:id/entry",
+            "com.whatsapp:id/caption",
+            "com.whatsapp.w4b:id/caption"
+        )
+        for (id in candidateIds) {
+            val byId = root.findAccessibilityNodeInfosByViewId(id)
+            if (!byId.isNullOrEmpty()) {
+                val editable = byId.lastOrNull { it.isEditable }
+                if (editable != null) return editable
+                return byId.last()
+            }
+        }
 
         val editables = mutableListOf<AccessibilityNodeInfo>()
         collectEditTexts(root, editables)
@@ -126,14 +138,29 @@ object PosterCoordinator {
     }
 
     private fun setNodeText(node: AccessibilityNodeInfo, value: String): Boolean {
+        node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
         val args = android.os.Bundle()
         args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
-        return node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+        if (node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
+            return true
+        }
+
+        // Some WhatsApp builds ignore ACTION_SET_TEXT until edit mode fully activates.
+        return node.performAction(AccessibilityNodeInfo.ACTION_PASTE)
     }
 
     private fun findSendButton(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        val byId = root.findAccessibilityNodeInfosByViewId("com.whatsapp:id/send")
-        if (!byId.isNullOrEmpty()) return byId.first()
+        val candidateIds = listOf(
+            "com.whatsapp:id/send",
+            "com.whatsapp.w4b:id/send",
+            "com.whatsapp:id/send_btn",
+            "com.whatsapp.w4b:id/send_btn"
+        )
+        for (id in candidateIds) {
+            val byId = root.findAccessibilityNodeInfosByViewId(id)
+            if (!byId.isNullOrEmpty()) return byId.first()
+        }
 
         val candidates = mutableListOf<AccessibilityNodeInfo>()
         collectByContentDesc(root, candidates)

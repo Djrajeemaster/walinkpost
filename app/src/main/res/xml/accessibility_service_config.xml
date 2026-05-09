@@ -6,5 +6,5 @@
     android:canRetrieveWindowContent="true"
     android:description="@string/app_name"
     android:notificationTimeout="100"
-    android:packageNames="com.whatsapp"
+    android:packageNames="com.whatsapp,com.whatsapp.w4b"
     android:accessibilityFlags="flagReportViewIds|flagIncludeNotImportantViews" />
