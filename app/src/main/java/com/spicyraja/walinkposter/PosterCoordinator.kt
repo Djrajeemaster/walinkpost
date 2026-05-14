@@ -19,7 +19,6 @@ object PosterCoordinator {
     var onBatchComplete: (() -> Unit)? = null
 
     fun start(urls: List<String>, previewWaitSeconds: Int, nextDelaySeconds: Int) {
-        onBatchComplete = null
         stop()
         queue.clear()
         urls.map { it.trim() }
