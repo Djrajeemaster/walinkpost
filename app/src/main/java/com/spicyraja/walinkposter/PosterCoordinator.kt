@@ -16,8 +16,10 @@ object PosterCoordinator {
     private val queue = ArrayDeque<String>()
 
     var onStatus: ((String) -> Unit)? = null
+    var onBatchComplete: (() -> Unit)? = null
 
     fun start(urls: List<String>, previewWaitSeconds: Int, nextDelaySeconds: Int) {
+        onBatchComplete = null
         stop()
         queue.clear()
         urls.map { it.trim() }
@@ -78,6 +80,7 @@ object PosterCoordinator {
             if (queue.isEmpty()) {
                 running = false
                 onStatus?.invoke("Completed: $sentCount/$totalCount")
+                onBatchComplete?.invoke()
             } else {
                 onStatus?.invoke("Sent $sentCount/$totalCount")
             }

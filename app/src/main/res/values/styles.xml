@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ChipBase">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="ChipUnselected" parent="ChipBase">
+        <item name="android:background">@drawable/chip_unselected_bg</item>
+        <item name="android:textColor">#555555</item>
+    </style>
+
+    <style name="ChipSelected" parent="ChipBase">
+        <item name="android:background">@drawable/chip_selected_bg</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+</resources>

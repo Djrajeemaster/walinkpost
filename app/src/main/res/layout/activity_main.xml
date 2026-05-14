@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F0F2F5"
     android:fillViewport="true">
 
     <LinearLayout
@@ -10,80 +12,322 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="WA Link Poster"
-            android:textStyle="bold"
-            android:textSize="22sp"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="1) WhatsApp lo target channel/chat open chesi screen meedha petti vundandi.&#10;2) Ikkada links paste chesi Start kottaandi."
-            android:layout_marginBottom="12dp" />
-
-        <EditText
-            android:id="@+id/linksInput"
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:gravity="top|start"
-            android:hint="One URL per line"
-            android:inputType="textMultiLine"
-            android:padding="12dp"
-            android:background="@android:drawable/edit_text" />
-
-        <EditText
-            android:id="@+id/previewWaitInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:hint="Preview wait seconds (default 8)"
-            android:inputType="number"
-            android:text="8" />
-
-        <EditText
-            android:id="@+id/nextDelayInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:hint="Next link delay seconds (default 3)"
-            android:inputType="number"
-            android:text="3" />
-
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="14dp">
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="16dp">
 
-            <Button
-                android:id="@+id/startBtn"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Start" />
+                android:text="WA Link Poster"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#1B5E20" />
 
-            <Space
-                android:layout_width="10dp"
-                android:layout_height="1dp" />
-
-            <Button
-                android:id="@+id/stopBtn"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Stop" />
+                android:text="Post links to WhatsApp automatically"
+                android:textSize="13sp"
+                android:textColor="#757575"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/statusText"
+        <!-- Manual Post Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="Status: idle"
-            android:textStyle="bold" />
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="▶  Manual Post"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#1B5E20"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Links (one per line)"
+                    android:textSize="12sp"
+                    android:textColor="#757575"
+                    android:layout_marginBottom="4dp" />
+
+                <EditText
+                    android:id="@+id/linksInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:gravity="top|start"
+                    android:hint="https://example.com/deal1&#10;https://example.com/deal2"
+                    android:inputType="textMultiLine"
+                    android:padding="12dp"
+                    android:textSize="13sp"
+                    android:background="@drawable/input_bg"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginEnd="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Preview wait (sec)"
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:layout_marginBottom="4dp" />
+
+                        <EditText
+                            android:id="@+id/previewWaitInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="8"
+                            android:padding="10dp"
+                            android:textSize="14sp"
+                            android:background="@drawable/input_bg" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Next link delay (sec)"
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:layout_marginBottom="4dp" />
+
+                        <EditText
+                            android:id="@+id/nextDelayInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="3"
+                            android:padding="10dp"
+                            android:textSize="14sp"
+                            android:background="@drawable/input_bg" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="14dp">
+
+                    <Button
+                        android:id="@+id/startBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="▶  Start"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#2E7D32"
+                        android:layout_marginEnd="6dp" />
+
+                    <Button
+                        android:id="@+id/stopBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="■  Stop"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#C62828"
+                        android:layout_marginStart="6dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/statusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Status: idle"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0"
+                    android:padding="10dp"
+                    android:background="@drawable/status_bg" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Auto Schedule Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🕐  Auto Schedule"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#E65100"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Queue links (one per line)"
+                    android:textSize="12sp"
+                    android:textColor="#757575"
+                    android:layout_marginBottom="4dp" />
+
+                <EditText
+                    android:id="@+id/queueLinksInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:gravity="top|start"
+                    android:hint="Paste all links — app will send deals automatically"
+                    android:inputType="textMultiLine"
+                    android:padding="12dp"
+                    android:textSize="13sp"
+                    android:background="@drawable/input_bg"
+                    android:layout_marginBottom="14dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginEnd="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Deals per batch"
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:layout_marginBottom="4dp" />
+
+                        <EditText
+                            android:id="@+id/batchSizeInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="5"
+                            android:padding="10dp"
+                            android:textSize="14sp"
+                            android:background="@drawable/input_bg" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="6dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Interval (minutes)"
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:layout_marginBottom="4dp" />
+
+                        <EditText
+                            android:id="@+id/intervalInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:text="30"
+                            android:padding="10dp"
+                            android:textSize="14sp"
+                            android:background="@drawable/input_bg" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/scheduleStartBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="⏰  Schedule ON"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#E65100"
+                        android:layout_marginEnd="6dp" />
+
+                    <Button
+                        android:id="@+id/scheduleStopBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="✕  Cancel"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#757575"
+                        android:layout_marginStart="6dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/queueStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Queue: idle"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#E65100"
+                    android:padding="10dp"
+                    android:background="@drawable/status_bg" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
     </LinearLayout>
 </ScrollView>
