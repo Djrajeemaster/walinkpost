@@ -67,12 +67,16 @@ class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worke
         val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
 
         if (!pm.isInteractive) {
-            // Screen is off — turn it on using a bright wake lock briefly
+            // Screen is off — turn it on briefly
+            @Suppress("DEPRECATION")
             val screenLock = pm.newWakeLock(
                 PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
                 "walinkposter:screenon"
             )
-            screenLock.acquire(3000L) // just enough to turn screen on
+            screenLock.acquire(5000L)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (screenLock.isHeld) screenLock.release()
+            }, 5000L)
         }
 
         val intent = ctx.packageManager.getLaunchIntentForPackage("com.whatsapp")
@@ -80,8 +84,7 @@ class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worke
             ?: return
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
-            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
-            Intent.FLAG_DISMISS_KEYGUARD
+            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
         )
         ctx.startActivity(intent)
     }
