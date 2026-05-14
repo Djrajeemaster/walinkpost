@@ -1,6 +1,5 @@
 package com.spicyraja.walinkposter
 
-import android.app.KeyguardManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -66,7 +65,6 @@ class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worke
         }
 
         val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val km = ctx.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
 
         if (!pm.isInteractive) {
             // Screen is off — turn it on using a bright wake lock briefly
@@ -77,15 +75,14 @@ class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worke
             screenLock.acquire(3000L) // just enough to turn screen on
         }
 
-        // Dismiss keyguard if possible (works on non-secure lock screens)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            km.requestDismissKeyguard(null, null)
-        }
-
         val intent = ctx.packageManager.getLaunchIntentForPackage("com.whatsapp")
             ?: ctx.packageManager.getLaunchIntentForPackage("com.whatsapp.w4b")
             ?: return
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        intent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+            Intent.FLAG_DISMISS_KEYGUARD
+        )
         ctx.startActivity(intent)
     }
 
