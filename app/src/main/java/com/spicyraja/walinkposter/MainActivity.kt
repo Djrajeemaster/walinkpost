@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "WhatsApp open avutundi. Target chat/channel open ga vunchandi.", Toast.LENGTH_LONG).show()
         }
 
-        binding.stopBtn.setOnClickListener { PosterCoordinator.stop() }
+        binding.stopBtn.setOnClickListener { PosterCoordinator.stopAndNotify() }
 
         binding.scheduleStartBtn.setOnClickListener {
             if (!isAccessibilityEnabled()) {

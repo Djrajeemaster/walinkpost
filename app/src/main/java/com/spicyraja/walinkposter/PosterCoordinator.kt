@@ -47,6 +47,10 @@ object PosterCoordinator {
         waitingForPreview = false
         previewReadyAtMs = 0L
         cooldownUntilMs = 0L
+    }
+
+    fun stopAndNotify() {
+        stop()
         onStatus?.invoke("Stopped")
     }
 

@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
@@ -13,7 +15,18 @@ import androidx.work.WorkerParameters
 
 class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
 
-    private var wakeLock: PowerManager.WakeLock? = null
+    companion object {
+        // Held in companion so they survive worker instance GC
+        private var wakeLock: PowerManager.WakeLock? = null
+        private var screenLock: PowerManager.WakeLock? = null
+
+        fun releaseAllLocks() {
+            wakeLock?.let { if (it.isHeld) it.release() }
+            wakeLock = null
+            screenLock?.let { if (it.isHeld) it.release() }
+            screenLock = null
+        }
+    }
 
     override fun doWork(): Result {
         if (LinkQueue.isEmpty(ctx)) {
@@ -25,66 +38,74 @@ class ScheduleWorker(private val ctx: Context, params: WorkerParameters) : Worke
         val previewWait = LinkQueue.getPreviewWait(ctx)
         val nextDelay = LinkQueue.getNextDelay(ctx)
 
-        acquireWakeLock()
+        // 1. Release any leftover locks from previous run
+        releaseAllLocks()
 
-        // Set callback BEFORE start() so it is never wiped
+        // 2. Wake screen FIRST
+        wakeScreen()
+
+        // 3. Set callback BEFORE start() — uses companion locks so they survive GC
         PosterCoordinator.onBatchComplete = {
             LinkQueue.consumeBatch(ctx)
             if (LinkQueue.isEmpty(ctx)) {
                 LinkQueue.setScheduled(ctx, false)
             }
-            releaseWakeLock()
+            releaseAllLocks()
             PosterCoordinator.onBatchComplete = null
         }
 
+        // 4. Start coordinator
         PosterCoordinator.start(batch, previewWait, nextDelay)
-        wakeAndLaunchWhatsApp()
+
+        // 5. Keep CPU alive
+        acquireWakeLock()
+
+        // 6. Reset stale foreground state, then launch WhatsApp if needed after screen is on
+        WhatsAppAccessibilityService.resetForegroundState()
+        Handler(Looper.getMainLooper()).postDelayed({
+            launchWhatsAppIfNeeded()
+        }, 1500L)
 
         return Result.success()
     }
 
+    private fun wakeScreen() {
+        val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!pm.isInteractive) {
+            @Suppress("DEPRECATION")
+            screenLock = pm.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+                PowerManager.ACQUIRE_CAUSES_WAKEUP or
+                PowerManager.ON_AFTER_RELEASE,
+                "walinkposter:screenon"
+            ).also { it.acquire(10 * 60 * 1000L) }
+        }
+    }
+
     private fun acquireWakeLock() {
         val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
-        // PARTIAL_WAKE_LOCK keeps CPU alive without triggering unlock dialog
         wakeLock = pm.newWakeLock(
             PowerManager.PARTIAL_WAKE_LOCK,
             "walinkposter:schedule"
         ).also { it.acquire(10 * 60 * 1000L) }
     }
 
-    private fun releaseWakeLock() {
-        wakeLock?.let { if (it.isHeld) it.release() }
-        wakeLock = null
-    }
-
-    private fun wakeAndLaunchWhatsApp() {
+    private fun launchWhatsAppIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(ctx)) {
-            // No overlay permission — show notification so user can tap to open WhatsApp
             showLaunchNotification()
             return
         }
 
-        val pm = ctx.getSystemService(Context.POWER_SERVICE) as PowerManager
-
-        if (!pm.isInteractive) {
-            // Screen is off — turn it on briefly
-            @Suppress("DEPRECATION")
-            val screenLock = pm.newWakeLock(
-                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
-                "walinkposter:screenon"
-            )
-            screenLock.acquire(5000L)
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                if (screenLock.isHeld) screenLock.release()
-            }, 5000L)
-        }
+        // WhatsApp already in foreground — AccessibilityService will pick it up, no relaunch
+        if (WhatsAppAccessibilityService.isWhatsAppForeground()) return
 
         val intent = ctx.packageManager.getLaunchIntentForPackage("com.whatsapp")
             ?: ctx.packageManager.getLaunchIntentForPackage("com.whatsapp.w4b")
             ?: return
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or
-            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+            Intent.FLAG_ACTIVITY_SINGLE_TOP
         )
         ctx.startActivity(intent)
     }
