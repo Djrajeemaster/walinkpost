@@ -81,6 +81,24 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Scheduled! ${rawLinks.size} links, $batch per run, every $interval min", Toast.LENGTH_LONG).show()
         }
 
+        binding.scheduleAddBtn.setOnClickListener {
+            if (!isAccessibilityEnabled()) {
+                Toast.makeText(this, "Enable accessibility service first", Toast.LENGTH_LONG).show()
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                return@setOnClickListener
+            }
+            val rawLinks = binding.queueLinksInput.text.toString()
+                .split("\n").map { it.trim() }
+                .filter { it.startsWith("http://") || it.startsWith("https://") }
+            if (rawLinks.isEmpty()) {
+                Toast.makeText(this, "Add links first to append", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            LinkQueue.appendLinks(this, rawLinks)
+            updateQueueStatus()
+            Toast.makeText(this, "Appended ${rawLinks.size} links. Queue: ${LinkQueue.size(this)}", Toast.LENGTH_SHORT).show()
+        }
+
         binding.scheduleStopBtn.setOnClickListener {
             Scheduler.cancel(this)
             updateQueueStatus()

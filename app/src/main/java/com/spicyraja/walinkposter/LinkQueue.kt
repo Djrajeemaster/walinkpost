@@ -15,6 +15,12 @@ object LinkQueue {
         prefs(ctx).edit().putString(KEY_LINKS, links.joinToString("\n")).apply()
     }
 
+    fun appendLinks(ctx: Context, links: List<String>) {
+        val all = loadAll(ctx)
+        val updated = all + links
+        saveLinks(ctx, updated)
+    }
+
     fun peekBatch(ctx: Context): List<String> {
         val all = loadAll(ctx)
         val batch = getBatchSize(ctx)

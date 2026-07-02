@@ -290,7 +290,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
 
                     <Button
                         android:id="@+id/scheduleStartBtn"
@@ -303,14 +304,31 @@
                         android:layout_marginEnd="6dp" />
 
                     <Button
+                        android:id="@+id/scheduleAddBtn"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="+  Add to Queue"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#1565C0"
+                        android:layout_marginStart="6dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
                         android:id="@+id/scheduleStopBtn"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
                         android:layout_weight="1"
-                        android:text="✕  Cancel"
+                        android:text="✕  Cancel Schedule"
                         android:textColor="#FFFFFF"
-                        android:backgroundTint="#757575"
-                        android:layout_marginStart="6dp" />
+                        android:backgroundTint="#C62828"
+                        android:layout_marginEnd="6dp" />
 
                 </LinearLayout>
 
