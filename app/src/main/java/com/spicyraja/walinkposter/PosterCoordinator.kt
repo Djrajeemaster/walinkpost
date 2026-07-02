@@ -5,12 +5,10 @@ import java.util.ArrayDeque
 
 object PosterCoordinator {
     private var running = false
-    private var waitingForPaste = false
-    private var waitingForSend = false
-    private var pasteReadyAtMs = 0L
-    private var sendReadyAtMs = 0L
+    private var waitingForPreview = false
     private var previewWaitMs = 8000L
     private var nextDelayMs = 3000L
+    private var previewReadyAtMs = 0L
     private var cooldownUntilMs = 0L
     private var sentCount = 0
     private var totalCount = 0
@@ -31,10 +29,8 @@ object PosterCoordinator {
         sentCount = 0
         previewWaitMs = (previewWaitSeconds.coerceAtLeast(1) * 1000L)
         nextDelayMs = (nextDelaySeconds.coerceAtLeast(1) * 1000L)
-        waitingForPaste = false
-        waitingForSend = false
-        pasteReadyAtMs = 0L
-        sendReadyAtMs = 0L
+        waitingForPreview = false
+        previewReadyAtMs = 0L
         cooldownUntilMs = 0L
         running = queue.isNotEmpty()
 
@@ -48,10 +44,8 @@ object PosterCoordinator {
 
     fun stop() {
         running = false
-        waitingForPaste = false
-        waitingForSend = false
-        pasteReadyAtMs = 0L
-        sendReadyAtMs = 0L
+        waitingForPreview = false
+        previewReadyAtMs = 0L
         cooldownUntilMs = 0L
     }
 
@@ -68,34 +62,22 @@ object PosterCoordinator {
 
         if (now < cooldownUntilMs) return false
 
-        if (waitingForPaste) {
-            if (now < pasteReadyAtMs) return false
-
-            val pasteButton = findPasteButton(root) ?: run {
-                onStatus?.invoke("Waiting for paste button in context menu...")
+        if (waitingForPreview) {
+            if (now < previewReadyAtMs) {
                 return false
             }
 
-            pasteButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            waitingForPaste = false
-            waitingForSend = true
-            sendReadyAtMs = now + 1000
-            onStatus?.invoke("Pasting ${sentCount + 1}/$totalCount...")
-            return true
-        }
-
-        if (waitingForSend) {
-            if (now < sendReadyAtMs) return false
-
             val sendNode = findSendButton(root) ?: run {
-                onStatus?.invoke("Waiting for send button...")
+                onStatus?.invoke("Preview ready, waiting for send button...")
                 return false
             }
 
             sendNode.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            if (queue.isNotEmpty()) queue.removeFirst()
+            if (queue.isNotEmpty()) {
+                queue.removeFirst()
+            }
             sentCount += 1
-            waitingForSend = false
+            waitingForPreview = false
             cooldownUntilMs = now + nextDelayMs
 
             if (queue.isEmpty()) {
@@ -119,13 +101,14 @@ object PosterCoordinator {
             return false
         }
 
-        input.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-        input.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-        input.performAction(AccessibilityNodeInfo.ACTION_LONG_CLICK)
+        if (!setNodeText(input, nextUrl)) {
+            onStatus?.invoke("Failed to paste. Retrying...")
+            return false
+        }
 
-        waitingForPaste = true
-        pasteReadyAtMs = now + 500
-        onStatus?.invoke("Waiting for context menu...")
+        waitingForPreview = true
+        previewReadyAtMs = now + previewWaitMs
+        onStatus?.invoke("Pasted ${sentCount + 1}/$totalCount. Waiting preview...")
 
         return true
     }
@@ -160,6 +143,18 @@ object PosterCoordinator {
         }
     }
 
+    private fun setNodeText(node: AccessibilityNodeInfo, value: String): Boolean {
+        node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        val args = android.os.Bundle()
+        args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
+        if (node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
+            return true
+        }
+
+        return node.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+    }
+
     private fun findSendButton(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         val candidateIds = listOf(
             "com.whatsapp:id/send",
@@ -177,46 +172,9 @@ object PosterCoordinator {
         return candidates.firstOrNull()
     }
 
-    private fun findPasteButton(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        val pasteTexts = listOf("Paste", "Paste as plain text")
-        val byText = mutableListOf<AccessibilityNodeInfo>()
-        collectNodesByText(root, byText, pasteTexts)
-        if (byText.isNotEmpty()) return byText.first()
-
-        val byDesc = mutableListOf<AccessibilityNodeInfo>()
-        collectByContentDesc(root, byDesc)
-        val pasteCandidates = byDesc.filter { it.contentDescription?.toString()?.contains("paste", true) == true }
-        if (pasteCandidates.isNotEmpty()) return pasteCandidates.first()
-
-        val allTextNodes = mutableListOf<AccessibilityNodeInfo>()
-        collectTextLeafNodes(root, allTextNodes)
-        return allTextNodes.firstOrNull { it.text?.toString()?.equals("Paste", true) == true }
-    }
-
-    private fun collectNodesByText(node: AccessibilityNodeInfo, out: MutableList<AccessibilityNodeInfo>, texts: List<String>) {
-        val nodeText = node.text?.toString() ?: ""
-        if (texts.any { nodeText.contains(it, ignoreCase = true) }) {
-            out.add(node)
-        }
-        for (i in 0 until node.childCount) {
-            node.getChild(i)?.let { collectNodesByText(it, out, texts) }
-        }
-    }
-
-    private fun collectTextLeafNodes(node: AccessibilityNodeInfo, out: MutableList<AccessibilityNodeInfo>) {
-        if (node.childCount == 0) {
-            val t = node.text?.toString() ?: ""
-            if (t.isNotBlank()) out.add(node)
-            return
-        }
-        for (i in 0 until node.childCount) {
-            node.getChild(i)?.let { collectTextLeafNodes(it, out) }
-        }
-    }
-
     private fun collectByContentDesc(node: AccessibilityNodeInfo, out: MutableList<AccessibilityNodeInfo>) {
         val desc = node.contentDescription?.toString()?.lowercase() ?: ""
-        if (desc.contains("send") || desc.contains("reply") || desc.contains("forward") || desc.contains("paste")) {
+        if (desc.contains("send") || desc.contains("పంపు") || desc.contains("enviar")) {
             out.add(node)
         }
         for (i in 0 until node.childCount) {
